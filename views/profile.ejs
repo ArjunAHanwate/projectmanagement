@@ -1,0 +1,275 @@
+<% include ./partians/header %>
+
+<div class="flex flex-col md:flex-row h-screen">
+
+    <div class="w-full md:w-20 h-auto md:h-screen flex flex-col items-center md:justify-center bg-gray-200 md:bg-white fixed bottom-0 left-0 md:relative z-10 md:z-auto">
+        <div class="flex md:block justify-around w-full md:w-auto py-2 md:py-0">
+            <a href="/profile" id="profile-link">
+                <img id="profile-img" class="my-2 md:my-10 w-12 md:w-auto" src="/images/Dashboard.png" alt="Dashboard">
+            </a>
+            <a href="/projectlist" id="projectlist-link">
+                <img id="projectlist-img" class="my-2 md:my-10 w-12 md:w-auto" src="/images/Project-list.png" alt="Project List">
+            </a>
+            <a href="/addproject" id="addproject-link">
+                <img id="addproject-img" class="my-2 md:my-10 w-12 md:w-auto" src="/images/create-project.png" alt="Create Project">
+            </a>
+            <a href="/logout" id="logout-link">
+                <img id="logout-img" class="my-2 md:my-10 w-12 md:w-auto" src="/images/Logout.png" alt="Logout">
+            </a>
+        </div>
+    </div>
+
+
+    <div class="w-full md:flex-1">
+        <!-- Cards -->
+        <div class="card" >
+            <div class="w-full h-32 flex px-4 flex items-center justify-between rounded-bl-[50px] relative" id="bg">
+                <div class="flex  items-center justify-between ">
+                    <p class="text-2xl text-white font-semibold">Dashboard</p>
+                    <div class="flex-1 w-full z-0 items-center absolute justify-center flex" id="image">
+                        <img src="/images/Logo.svg" alt="" class="h-16">
+                    </div>
+                </div> 
+            </div>
+             
+        
+            <% 
+                const totalProjects = projectCounts.total;
+                const closedProjects = projectCounts.closed;
+                const runningProjects = projectCounts.running;
+                const cancelledProjects = projectCounts.cancelled;
+                const closureDelayProjects = projectCounts.closureDelay;
+            %>
+        
+            <div class="flex p-4 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4  overflow-x-auto" id="card">
+                <div class="h-24 w-30 sm:w-auto rounded bg-[#f0f0f0] overflow-hidden shadow-md flex-shrink-0">
+                    <div class="flex w-40">
+                        <div class="h-24 w-2 bg-sky-400"></div>
+                        <div class="px-4">
+                            <h2 class="text-l mt-3">Total Projects</h2>
+                            <h6 class="text-5xl font-semibold text-zinc-600"><%= totalProjects %></h6>
+                        </div>
+                    </div>
+                </div>
+                <div class="h-24 w-42 sm:w-auto rounded bg-[#f0f0f0] overflow-hidden shadow-md flex-shrink-0">
+                    <div class="flex w-40">
+                        <div class="h-24 w-2 bg-sky-400"></div>
+                        <div class="px-4">
+                            <h2 class="text-l mt-3">Closed Projects</h2>
+                            <h6 class="text-5xl font-semibold text-zinc-600"><%= closedProjects %></h6>
+                        </div>
+                    </div>
+                </div>
+                <div class="h-24 w-42 sm:w-auto rounded bg-[#f0f0f0] overflow-hidden shadow-md flex-shrink-0">
+                    <div class="flex w-44">
+                        <div class="h-24 w-2 bg-sky-400"></div>
+                        <div class="px-4">
+                            <h2 class="text-l mt-3">Running Projects</h2>
+                            <h6 class="text-5xl font-semibold text-zinc-600"><%= runningProjects %></h6>
+                        </div>
+                    </div>
+                </div>
+                <div class="h-24 w-42 sm:w-auto rounded bg-[#f0f0f0] overflow-hidden shadow-md flex-shrink-0">
+                    <div class="flex w-40">
+                        <div class="h-24 w-2 bg-sky-400"></div>
+                        <div class="px-4">
+                            <h2 class="text-l mt-3">Closure Delay</h2>
+                            <h6 class="text-5xl font-semibold text-zinc-600"><%= closureDelayProjects %></h6>
+                        </div>
+                    </div>
+                </div>
+                <div class="h-24 w-42 sm:w-auto rounded bg-[#f0f0f0] overflow-hidden shadow-md flex-shrink-0">
+                    <div class="flex w-44">
+                        <div class="h-24 w-2 bg-sky-400"></div>
+                        <div class="px-4">
+                            <h2 class="text-l mt-3">Cancelled Projects</h2>
+                            <h6 class="text-5xl font-semibold text-zinc-600"><%= cancelledProjects %></h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Graph -->
+        <div class="mt-8 p-4 w-full md:w-3/5 shadow-lg rounded-lg">
+            <p class="p-3">Department wise - Total Vs Closed</p>
+            <div class="sm:h-[400px] h-auto">
+                <canvas id="departmentChart" style="height: 400px; width: 100%;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script>
+    const departmentAbbreviations = {
+        'Strategy': 'STA',
+        'Finance': 'FIN',
+        'Qaulity': 'QAU',
+        'Maintenance': 'MAI',
+        'Stores': 'STO',
+        'HR': 'HR'
+    };
+
+    // Fetch Department count from database
+    async function fetchDepartmentData() {
+        try {
+            const response = await fetch('/get-project-counts'); 
+            if (!response.ok) {     
+                throw new Error('Failed to fetch data');
+            }
+            const data = await response.json();
+            console.log('Fetched data:', data); // Log fetched data
+            return data;
+        } catch (error) {
+            console.error('Error fetching department data:', error);
+        }
+    }
+
+
+    async function renderChart() {
+        const departmentData = await fetchDepartmentData();
+        if (!departmentData) {
+            return; 
+        }
+
+        const departmentNames = departmentData.map(entry => entry._id);
+        
+
+        const departments = departmentNames.map(name => {
+            
+            const abbreviation = departmentAbbreviations[name];
+            if (!abbreviation) {
+                console.warn(`No abbreviation found for department: ${name}`);
+                return name; 
+            }
+            return abbreviation;
+        });
+
+        const totalProjects = departmentData.map(entry => entry.totalProjects);
+        const closedProjects = departmentData.map(entry => entry.closedProjects);
+        
+        const percentageLabels = departments.map((department, index) => {
+            const percentage = ((closedProjects[index] / totalProjects[index]) * 100);
+     
+            const roundedPercentage = Math.round(percentage);
+            return `${department} ${roundedPercentage}%`;
+        });
+
+    const ctx = document.getElementById('departmentChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: percentageLabels,
+            datasets: [
+                {
+                    label: "Total Projects",
+                    data: totalProjects,
+                    backgroundColor: 'rgb(4,78,146)',
+                    borderColor: 'rgb(4,78,146)',
+                    borderWidth: 1,
+                    borderRadius: 15,
+                    barPercentage: 0.5,
+                    categoryPercentage: 0.4,
+                },
+                {
+                    label: "Closed Projects",
+                    data: closedProjects,
+                    backgroundColor: "green",
+                    borderColor: "green",
+                    borderWidth: 1,
+                    borderRadius: 5,
+                    barPercentage: 0.5,
+                    categoryPercentage: 0.4,
+                },
+            ]
+        },
+    
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        },
+        
+            options: {
+                maintainAspectRatio: false,
+                aspectRatio: 2, 
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                        }
+                    },
+                    
+                    datalabels: {
+                        display: true,
+                        align: 'end',
+                        anchor: 'end',
+                        formatter: (value, context) => {
+                            if (context.dataset.label === 'Total Projects') {
+                                return value;
+                            } else {
+                                return '';
+                            }
+                        },
+                        color: 'black',
+                        font: {
+                            weight: 'bold'
+                        }
+                    }
+                },
+        }
+        
+    
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    renderChart();
+});
+
+    function updateImages() {
+        const path = window.location.pathname;
+
+     
+        const images = {
+            profile: '/images/Dashboard.png',
+            projectlist: '/images/Project-list.png',
+            addproject: '/images/create-project.png',
+            logout: '/images/Logout.png'
+        };
+
+
+        const activeImages = {
+            profile: '/images/Dashboard-active.png',
+            projectlist: '/images/Project-list-active.png',
+            addproject: '/images/create-project-active.png',
+            logout: '/images/Logout-active.png'
+        };
+
+        const pathToIdMap = {
+            '/profile': 'profile-img',
+            '/projectlist': 'projectlist-img',
+            '/addproject': 'addproject-img',
+            '/logout': 'logout-img'
+        };
+
+        for (const [key, value] of Object.entries(pathToIdMap)) {
+            const imgElement = document.getElementById(value);
+            if (key === path) {
+                imgElement.src = activeImages[value.split('-')[0]];
+            } else {
+                imgElement.src = images[value.split('-')[0]];
+            }
+        }
+    }
+
+    window.onload = updateImages;
+</script>
+
+<% include ./partians/footer %>

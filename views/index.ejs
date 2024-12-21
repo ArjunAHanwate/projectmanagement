@@ -1,0 +1,68 @@
+<% include ./partians/header %>
+<div id="abc" class="w-full h-screen flex items-center justify-center">
+  <div class="">
+  <div class="flex justify-center pt-0 p-10">
+    <div>
+      <img class="block mx-11" src="/images/Logo.svg" alt="">
+      <h3 class="block text-md text-white">Online Project Managment</h3>
+    </div>
+  </div>
+  <div class="w-[400px] h-[400px] shadow shadow-md bg-zinc-100 px-10 py-5 rounded-[15px]">
+    <h3 class="text-xl text-center mt-4 tracking-tighter ">Login to get started</h3>
+        <form action="/login" method="post" class="mt-8">
+
+      <label for="" class="">
+        Email
+        <input class="block rounded-md w-full h-12 py-2 px-3 border border-gray-500" type="email" name="email" required>
+      </label>
+      
+      <div class="mt-6">
+        <label for="" class="mt-4">
+          Password
+          <div class="relative">
+            <input class="block rounded-md w-full h-12 py-2 px-3 border border-gray-500" type="password" name="password" id="password" required>
+            <img src="/images/hide-password.png" id="togglePassword" class="absolute right-3 top-4 cursor-pointer" alt="Show/Hide Password">
+          </div>
+        </label>
+      </div>
+      
+      <div class="flex justify-end">
+        <a href="#" class="mt-2 inline-block text-blue-400">Forgot password?</a>
+      </div>
+      
+      <div class="flex justify-center">    
+            <input class="block w-48 py-2 mt-5 px-3 bg-blue-500 text-white rounded-full" type="submit" value="Login">
+      </div>
+     
+        </form>
+  
+  
+    
+    <a class="w-full text-sm text-center inline-block text-zinc-700 mt-3 font-semibold" href="/register">Don't have account</a>
+  </div>
+  <div class="flex justify-center">
+    <% if (typeof error !== 'undefined') { %>
+      <div class="mt-4 text-red-500">
+          <h2><%= error %></h2>
+      </div>
+  <% } %>
+  </div>
+  
+  </div>
+  
+  
+</div> make it same for it
+  <script>
+    const togglePassword = document.querySelector('#togglePassword');
+    const password = document.querySelector('#password');
+  
+    togglePassword.addEventListener('click', function (e) {
+      const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+      password.setAttribute('type', type);
+  
+      this.classList.toggle('visible');
+    });
+
+    
+  </script>
+  <% include ./partians/footer.ejs %>
